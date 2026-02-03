@@ -56,20 +56,24 @@ type FunctionDefinition struct {
 
 // InputObject represents structured input for chat completion
 type InputObject struct {
-	Messages   []Message `json:"messages"`
-	Tools      []Tool    `json:"tools,omitempty"`
-	ToolChoice any       `json:"tool_choice,omitempty"` // string or object
-	Tags       []string  `json:"tags,omitempty"`
+	Messages          []Message `json:"messages"`
+	Tools             []Tool    `json:"tools,omitempty"`
+	ToolChoice        any       `json:"tool_choice,omitempty"` // string or object
+	Tags              []string  `json:"tags,omitempty"`
+	EnableCompression *bool     `json:"enable_compression,omitempty"` // Enable token compression (gateway-internal, not sent to providers)
+	CompressionRate   *float64  `json:"compression_rate,omitempty"`   // Compression rate 0.0-1.0 (gateway-internal, not sent to providers)
 }
 
 // Request represents the request body for chat completions
 type Request struct {
-	Model      string    `json:"model"`
-	Messages   []Message `json:"messages"`
-	Stream     bool      `json:"stream,omitempty"`
-	Tools      []Tool    `json:"tools,omitempty"`
-	ToolChoice any       `json:"tool_choice,omitempty"`
-	Tags       []string  `json:"tags,omitempty"`
+	Model             string    `json:"model"`
+	Messages          []Message `json:"messages"`
+	Stream            bool      `json:"stream,omitempty"`
+	Tools             []Tool    `json:"tools,omitempty"`
+	ToolChoice        any       `json:"tool_choice,omitempty"`
+	Tags              []string  `json:"tags,omitempty"`
+	EnableCompression *bool     `json:"enable_compression,omitempty"` // Enable token compression (gateway-internal, not sent to providers)
+	CompressionRate   *float64  `json:"compression_rate,omitempty"`   // Compression rate 0.0-1.0 (gateway-internal, not sent to providers)
 }
 
 // StreamDelta represents a streaming chunk delta
@@ -296,11 +300,15 @@ func (c *Client) buildRequest(model string, input any, stream bool) (*Request, e
 		req.Tools = v.Tools
 		req.ToolChoice = v.ToolChoice
 		req.Tags = v.Tags
+		req.EnableCompression = v.EnableCompression
+		req.CompressionRate = v.CompressionRate
 	case *InputObject:
 		req.Messages = v.Messages
 		req.Tools = v.Tools
 		req.ToolChoice = v.ToolChoice
 		req.Tags = v.Tags
+		req.EnableCompression = v.EnableCompression
+		req.CompressionRate = v.CompressionRate
 	case map[string]any:
 		// Map input
 		if messages, ok := v["messages"]; ok {
@@ -333,6 +341,16 @@ func (c *Client) buildRequest(model string, input any, stream bool) (*Request, e
 						req.Tags = append(req.Tags, s)
 					}
 				}
+			}
+		}
+		if enableCompression, ok := v["enable_compression"]; ok {
+			if boolVal, ok := enableCompression.(bool); ok {
+				req.EnableCompression = &boolVal
+			}
+		}
+		if compressionRate, ok := v["compression_rate"]; ok {
+			if floatVal, ok := compressionRate.(float64); ok {
+				req.CompressionRate = &floatVal
 			}
 		}
 	default:
