@@ -1,14 +1,14 @@
 # Edgee Go SDK
 
-Lightweight, type-safe Go SDK for the [Edgee AI Gateway](https://www.edgee.cloud).
+Lightweight, type-safe Go SDK for the [Edgee AI Gateway](https://www.edgee.ai).
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/edgee-cloud/go-sdk.svg)](https://pkg.go.dev/github.com/edgee-cloud/go-sdk)
+[![Go Reference](https://pkg.go.dev/badge/github.com/edgee-ai/go-sdk.svg)](https://pkg.go.dev/github.com/edgee-ai/go-sdk)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 ## Installation
 
 ```bash
-go get github.com/edgee-cloud/go-sdk/edgee
+go get github.com/edgee-ai/go-sdk/edgee
 ```
 
 ## Quick Start
@@ -19,7 +19,7 @@ package main
 import (
     "fmt"
     "log"
-    "github.com/edgee-cloud/go-sdk/edgee"
+    "github.com/edgee-ai/go-sdk/edgee"
 )
 
 func main() {
@@ -95,13 +95,13 @@ for {
 
 For complete documentation, examples, and API reference, visit:
 
-**👉 [Official Go SDK Documentation](https://www.edgee.cloud/docs/sdk/go)**
+**👉 [Official Go SDK Documentation](https://www.edgee.ai/docs/sdk/go)**
 
 The documentation includes:
-- [Configuration guide](https://www.edgee.cloud/docs/sdk/go/configuration) - Multiple ways to configure the SDK
-- [Send method](https://www.edgee.cloud/docs/sdk/go/send) - Complete guide to non-streaming requests
-- [Stream method](https://www.edgee.cloud/docs/sdk/go/stream) - Streaming responses guide
-- [Tools](https://www.edgee.cloud/docs/sdk/go/tools) - Function calling guide
+- [Configuration guide](https://www.edgee.ai/docs/sdk/go/configuration) - Multiple ways to configure the SDK
+- [Send method](https://www.edgee.ai/docs/sdk/go/send) - Complete guide to non-streaming requests
+- [Stream method](https://www.edgee.ai/docs/sdk/go/stream) - Streaming responses guide
+- [Tools](https://www.edgee.ai/docs/sdk/go/tools) - Function calling guide
 
 ## License
 
