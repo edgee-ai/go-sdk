@@ -52,6 +52,17 @@ if err != nil {
 fmt.Println(response.Text())         // Text content
 fmt.Println(response.FinishReason()) // Finish reason
 fmt.Println(response.ToolCalls())    // Tool calls (if any)
+
+// Access usage and compression info
+if response.Usage != nil {
+    fmt.Printf("Tokens used: %d\n", response.Usage.TotalTokens)
+}
+
+if response.Compression != nil {
+    fmt.Printf("Input tokens: %d\n", response.Compression.InputTokens)
+    fmt.Printf("Saved tokens: %d\n", response.Compression.SavedTokens)
+    fmt.Printf("Compression rate: %.2f\n", response.Compression.Rate)
+}
 ```
 
 ## Stream Method
@@ -89,6 +100,7 @@ for {
 - ✅ **Streaming** - Real-time response streaming with channels
 - ✅ **Tool calling** - Full support for function calling
 - ✅ **Flexible input** - Accept strings, InputObject, or maps
+- ✅ **Compression info** - Access token compression metrics in responses
 - ✅ **Minimal dependencies** - Uses only standard library and essential packages
 
 ## Documentation
