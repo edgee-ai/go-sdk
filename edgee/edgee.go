@@ -104,14 +104,22 @@ type Usage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
+// Compression represents compression information
+type Compression struct {
+	InputTokens int     `json:"input_tokens"`
+	SavedTokens int     `json:"saved_tokens"`
+	Rate        float64 `json:"rate"`
+}
+
 // SendResponse represents the response from a non-streaming request
 type SendResponse struct {
-	ID      string   `json:"id"`
-	Object  string   `json:"object"`
-	Created int64    `json:"created"`
-	Model   string   `json:"model"`
-	Choices []Choice `json:"choices"`
-	Usage   *Usage   `json:"usage,omitempty"`
+	ID          string       `json:"id"`
+	Object      string       `json:"object"`
+	Created     int64        `json:"created"`
+	Model       string       `json:"model"`
+	Choices     []Choice     `json:"choices"`
+	Usage       *Usage       `json:"usage,omitempty"`
+	Compression *Compression `json:"compression,omitempty"`
 }
 
 // Text returns the text content from the first choice (convenience method)
