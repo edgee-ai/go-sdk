@@ -678,6 +678,101 @@ func TestClient_Send(t *testing.T) {
 	})
 }
 
+func TestClient_SendWithCompression(t *testing.T) {
+	t.Run("with compression in response", func(t *testing.T) {
+		mockResponse := SendResponse{
+			ID:      "test-id",
+			Object:  "chat.completion",
+			Created: 1234567890,
+			Model:   "gpt-4",
+			Choices: []Choice{
+				{
+					Index: 0,
+					Message: &Message{
+						Role:    "assistant",
+						Content: "Response",
+					},
+					FinishReason: stringPtr("stop"),
+				},
+			},
+			Usage: &Usage{
+				PromptTokens:     100,
+				CompletionTokens: 50,
+				TotalTokens:      150,
+			},
+			Compression: &Compression{
+				InputTokens: 100,
+				SavedTokens: 42,
+				Rate:        0.6102003642987249,
+			},
+		}
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(mockResponse)
+		}))
+		defer server.Close()
+
+		client, _ := NewClient(&Config{
+			APIKey:  "test-api-key",
+			BaseURL: server.URL,
+		})
+
+		response, err := client.Send("gpt-4", "Test")
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+
+		if response.Compression == nil {
+			t.Fatal("Expected compression data, got nil")
+		}
+		if response.Compression.InputTokens != 100 {
+			t.Errorf("Expected input_tokens 100, got %d", response.Compression.InputTokens)
+		}
+		if response.Compression.SavedTokens != 42 {
+			t.Errorf("Expected saved_tokens 42, got %d", response.Compression.SavedTokens)
+		}
+		if response.Compression.Rate != 0.6102003642987249 {
+			t.Errorf("Expected rate 0.6102003642987249, got %f", response.Compression.Rate)
+		}
+	})
+
+	t.Run("without compression in response", func(t *testing.T) {
+		mockResponse := SendResponse{
+			Choices: []Choice{
+				{
+					Index: 0,
+					Message: &Message{
+						Role:    "assistant",
+						Content: "Response",
+					},
+					FinishReason: stringPtr("stop"),
+				},
+			},
+		}
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(mockResponse)
+		}))
+		defer server.Close()
+
+		client, _ := NewClient(&Config{
+			APIKey:  "test-api-key",
+			BaseURL: server.URL,
+		})
+
+		response, err := client.Send("gpt-4", "Test")
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+
+		if response.Compression != nil {
+			t.Error("Expected nil compression")
+		}
+	})
+}
+
 func TestSendResponse_ConvenienceMethods(t *testing.T) {
 	t.Run("Text method", func(t *testing.T) {
 		response := &SendResponse{
