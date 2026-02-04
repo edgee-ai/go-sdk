@@ -10,6 +10,7 @@ import (
 )
 
 // Large context document to demonstrate input compression
+// IMPORTANT: Only USER messages are compressed. System messages are not compressed.
 const LARGE_CONTEXT = `
 The History and Impact of Artificial Intelligence
 
@@ -68,16 +69,23 @@ func main() {
 	fmt.Println()
 
 	// Example: Request with compression enabled and large input
-	fmt.Println("Example: Large context with compression enabled")
+	fmt.Println("Example: Large user message with compression enabled")
 	fmt.Println(strings.Repeat("-", 70))
 	fmt.Printf("Input context length: %d characters\n", len(LARGE_CONTEXT))
 	fmt.Println()
 
+	// NOTE: Only USER messages are compressed
+	// Put the large context in the user message to demonstrate compression
+	userMessage := fmt.Sprintf(`Here is some context about AI:
+
+%s
+
+Based on this context, summarize the key milestones in AI development in 3 bullet points.`, LARGE_CONTEXT)
+
 	// Create input object with compression settings
 	input := edgee.InputObject{
 		Messages: []edgee.Message{
-			{Role: "system", Content: LARGE_CONTEXT},
-			{Role: "user", Content: "Based on the context above, summarize the key milestones in AI development in 3 bullet points."},
+			{Role: "user", Content: userMessage},
 		},
 	}
 
