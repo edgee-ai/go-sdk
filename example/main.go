@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/edgee-cloud/go-sdk/edgee"
+	"github.com/edgee-ai/go-sdk/edgee"
 )
 
 func main() {

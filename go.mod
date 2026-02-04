@@ -1,4 +1,4 @@
-module github.com/edgee-cloud/go-sdk
+module github.com/edgee-ai/go-sdk
 
 go 1.21
 
