@@ -44,7 +44,7 @@ func main() {
 
 	// Test 3: With tools
 	fmt.Println("Test 3: With tools")
-	response3, err := client.ChatCompletion("gpt-4o", map[string]interface{}{
+	response3, err := client.ChatCompletion("gpt-5.2", map[string]interface{}{
 		"messages": []map[string]string{
 			{"role": "user", "content": "What is the weather in Paris?"},
 		},

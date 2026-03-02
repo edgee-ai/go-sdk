@@ -95,7 +95,7 @@ Based on this context, summarize the key milestones in AI development in 3 bulle
 	input.EnableCompression = &enableCompression
 	input.CompressionRate = &compressionRate
 
-	response, err := client.Send("gpt-4o", input)
+	response, err := client.Send("gpt-5.2", input)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}

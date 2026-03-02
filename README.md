@@ -28,7 +28,7 @@ func main() {
         log.Fatal(err)
     }
 
-    response, err := client.Send("gpt-4o", "What is the capital of France?")
+    response, err := client.Send("gpt-5.2", "What is the capital of France?")
     if err != nil {
         log.Fatal(err)
     }
@@ -43,7 +43,7 @@ func main() {
 The `Send()` method makes non-streaming chat completion requests:
 
 ```go
-response, err := client.Send("gpt-4o", "Hello, world!")
+response, err := client.Send("gpt-5.2", "Hello, world!")
 if err != nil {
     log.Fatal(err)
 }
@@ -70,7 +70,7 @@ if response.Compression != nil {
 The `Stream()` method enables real-time streaming responses:
 
 ```go
-chunkChan, errChan := client.Stream("gpt-4o", "Tell me a story")
+chunkChan, errChan := client.Stream("gpt-5.2", "Tell me a story")
 
 for {
     select {
