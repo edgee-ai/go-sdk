@@ -28,11 +28,7 @@ func main() {
         log.Fatal(err)
     }
 
-<<<<<<< HEAD
-    response, err := client.Send("gpt-5.2", "What is the capital of France?")
-=======
     response, err := client.Send("anthropic/claude-haiku-4-5", "What is the capital of France?")
->>>>>>> d846ba2 (feat: update compression response to new API format)
     if err != nil {
         log.Fatal(err)
     }
