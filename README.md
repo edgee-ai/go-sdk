@@ -28,7 +28,11 @@ func main() {
         log.Fatal(err)
     }
 
+<<<<<<< HEAD
     response, err := client.Send("gpt-5.2", "What is the capital of France?")
+=======
+    response, err := client.Send("anthropic/claude-haiku-4-5", "What is the capital of France?")
+>>>>>>> d846ba2 (feat: update compression response to new API format)
     if err != nil {
         log.Fatal(err)
     }
@@ -43,7 +47,7 @@ func main() {
 The `Send()` method makes non-streaming chat completion requests:
 
 ```go
-response, err := client.Send("gpt-5.2", "Hello, world!")
+response, err := client.Send("anthropic/claude-haiku-4-5", "Hello, world!")
 if err != nil {
     log.Fatal(err)
 }
@@ -59,9 +63,10 @@ if response.Usage != nil {
 }
 
 if response.Compression != nil {
-    fmt.Printf("Input tokens: %d\n", response.Compression.InputTokens)
     fmt.Printf("Saved tokens: %d\n", response.Compression.SavedTokens)
-    fmt.Printf("Compression rate: %.2f\n", response.Compression.Rate)
+    fmt.Printf("Reduction: %.1f%%\n", response.Compression.Reduction)
+    fmt.Printf("Cost savings: $%.3f\n", float64(response.Compression.CostSavings)/1000000)
+    fmt.Printf("Time: %d ms\n", response.Compression.TimeMs)
 }
 ```
 
@@ -70,7 +75,7 @@ if response.Compression != nil {
 The `Stream()` method enables real-time streaming responses:
 
 ```go
-chunkChan, errChan := client.Stream("gpt-5.2", "Tell me a story")
+chunkChan, errChan := client.Stream("anthropic/claude-haiku-4-5", "Tell me a story")
 
 for {
     select {

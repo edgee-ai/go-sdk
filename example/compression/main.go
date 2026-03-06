@@ -95,7 +95,7 @@ Based on this context, summarize the key milestones in AI development in 3 bulle
 	input.EnableCompression = &enableCompression
 	input.CompressionRate = &compressionRate
 
-	response, err := client.Send("gpt-5.2", input)
+	response, err := client.Send("anthropic/claude-haiku-4-5", input)
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
@@ -115,20 +115,18 @@ Based on this context, summarize the key milestones in AI development in 3 bulle
 	// Display compression information
 	if response.Compression != nil {
 		fmt.Println("Compression Metrics:")
-		fmt.Printf("  Input tokens:  %d\n", response.Compression.InputTokens)
 		fmt.Printf("  Saved tokens:  %d\n", response.Compression.SavedTokens)
-		fmt.Printf("  Compression rate: %.2f%%\n", response.Compression.Rate*100)
-
-		var savingsPct float64
-		if response.Compression.InputTokens > 0 {
-			savingsPct = (float64(response.Compression.SavedTokens) / float64(response.Compression.InputTokens)) * 100
+		fmt.Printf("  Reduction:     %.1f%%\n", response.Compression.Reduction)
+		fmt.Printf("  Cost savings:  $%.3f\n", float64(response.Compression.CostSavings)/1000000)
+		fmt.Printf("  Time:          %d ms\n", response.Compression.TimeMs)
+		if response.Compression.Reduction > 0 {
+			originalTokens := int(float64(response.Compression.SavedTokens) * 100 / response.Compression.Reduction)
+			tokensAfter := originalTokens - response.Compression.SavedTokens
+			fmt.Println()
+			fmt.Println("  💡 Without compression, this request would have used")
+			fmt.Printf("     %d input tokens.\n", originalTokens)
+			fmt.Printf("     With compression, only %d tokens were processed!\n", tokensAfter)
 		}
-		fmt.Printf("  Savings: %.1f%% of input tokens saved!\n", savingsPct)
-		fmt.Println()
-		fmt.Println("  💡 Without compression, this request would have used")
-		fmt.Printf("     %d input tokens.\n", response.Compression.InputTokens)
-		fmt.Printf("     With compression, only %d tokens were processed!\n",
-			response.Compression.InputTokens-response.Compression.SavedTokens)
 	} else {
 		fmt.Println("No compression data available in response.")
 		fmt.Println("Note: Compression data is only returned when compression is enabled")

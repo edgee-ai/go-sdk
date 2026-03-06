@@ -106,9 +106,10 @@ type Usage struct {
 
 // Compression represents compression information
 type Compression struct {
-	InputTokens int     `json:"input_tokens"`
 	SavedTokens int     `json:"saved_tokens"`
-	Rate        float64 `json:"rate"`
+	CostSavings int     `json:"cost_savings"` // micro-units (e.g. 27000 = $0.027)
+	Reduction   float64 `json:"reduction"`    // percentage (e.g. 48 = 48%, may be fractional)
+	TimeMs      int     `json:"time_ms"`      // milliseconds
 }
 
 // SendResponse represents the response from a non-streaming request

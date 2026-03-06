@@ -16,7 +16,7 @@ func main() {
 
 	// Test 1: Simple string input
 	fmt.Println("Test 1: Simple string input")
-	response1, err := client.ChatCompletion("mistral/mistral-small-latest", "What is the capital of France?")
+	response1, err := client.ChatCompletion("anthropic/claude-haiku-4-5", "What is the capital of France?")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
 	} else {
@@ -29,7 +29,7 @@ func main() {
 
 	// Test 2: Full input object with messages
 	fmt.Println("Test 2: Full input object with messages")
-	response2, err := client.ChatCompletion("mistral/mistral-small-latest", map[string]interface{}{
+	response2, err := client.ChatCompletion("anthropic/claude-haiku-4-5", map[string]interface{}{
 		"messages": []map[string]string{
 			{"role": "system", "content": "You are a helpful assistant."},
 			{"role": "user", "content": "Say hello!"},
@@ -44,7 +44,7 @@ func main() {
 
 	// Test 3: With tools
 	fmt.Println("Test 3: With tools")
-	response3, err := client.ChatCompletion("gpt-5.2", map[string]interface{}{
+	response3, err := client.ChatCompletion("anthropic/claude-haiku-4-5", map[string]interface{}{
 		"messages": []map[string]string{
 			{"role": "user", "content": "What is the weather in Paris?"},
 		},
@@ -81,7 +81,7 @@ func main() {
 
 	// Test 4: Streaming
 	fmt.Println("Test 4: Streaming")
-	chunkChan, errChan := client.Stream("mistral/mistral-small-latest", "What is Go?")
+	chunkChan, errChan := client.Stream("anthropic/claude-haiku-4-5", "What is Go?")
 	for {
 		select {
 		case chunk, ok := <-chunkChan:

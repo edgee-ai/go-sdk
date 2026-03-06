@@ -701,9 +701,10 @@ func TestClient_SendWithCompression(t *testing.T) {
 				TotalTokens:      150,
 			},
 			Compression: &Compression{
-				InputTokens: 100,
 				SavedTokens: 42,
-				Rate:        0.6102003642987249,
+				CostSavings: 27000,
+				Reduction:   48.0,
+				TimeMs:      150,
 			},
 		}
 
@@ -726,14 +727,17 @@ func TestClient_SendWithCompression(t *testing.T) {
 		if response.Compression == nil {
 			t.Fatal("Expected compression data, got nil")
 		}
-		if response.Compression.InputTokens != 100 {
-			t.Errorf("Expected input_tokens 100, got %d", response.Compression.InputTokens)
-		}
 		if response.Compression.SavedTokens != 42 {
 			t.Errorf("Expected saved_tokens 42, got %d", response.Compression.SavedTokens)
 		}
-		if response.Compression.Rate != 0.6102003642987249 {
-			t.Errorf("Expected rate 0.6102003642987249, got %f", response.Compression.Rate)
+		if response.Compression.CostSavings != 27000 {
+			t.Errorf("Expected cost_savings 27000, got %d", response.Compression.CostSavings)
+		}
+		if response.Compression.Reduction != 48.0 {
+			t.Errorf("Expected reduction 48, got %f", response.Compression.Reduction)
+		}
+		if response.Compression.TimeMs != 150 {
+			t.Errorf("Expected time_ms 150, got %d", response.Compression.TimeMs)
 		}
 	})
 
