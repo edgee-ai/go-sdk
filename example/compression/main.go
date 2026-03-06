@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/edgee-cloud/go-sdk/edgee"
+	"github.com/edgee-ai/go-sdk/edgee"
 )
 
 // Large context document to demonstrate input compression
