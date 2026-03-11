@@ -83,17 +83,18 @@ func main() {
 Based on this context, summarize the key milestones in AI development in 3 bullet points.`, LARGE_CONTEXT)
 
 	// Create input object with compression settings
+	compressionRate := 0.5
+	semanticThreshold := 60
 	input := edgee.InputObject{
 		Messages: []edgee.Message{
 			{Role: "user", Content: userMessage},
 		},
+		CompressionModel: "agentic",
+		CompressionConfiguration: &edgee.CompressionConfiguration{
+			Rate:                          &compressionRate,
+			SemanticPreservationThreshold: &semanticThreshold,
+		},
 	}
-
-	// Set compression parameters
-	enableCompression := true
-	compressionRate := 0.5
-	input.EnableCompression = &enableCompression
-	input.CompressionRate = &compressionRate
 
 	response, err := client.Send("anthropic/claude-haiku-4-5", input)
 	if err != nil {
