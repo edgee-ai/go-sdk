@@ -14,7 +14,7 @@ import (
 
 const (
 	// DefaultBaseURL is the default base URL for the Edgee API
-	DefaultBaseURL = "https://api.edgee.ai"
+	DefaultBaseURL = "https://edgee.io"
 	// APIEndpoint is the chat completions endpoint
 	APIEndpoint = "/v1/chat/completions"
 )
