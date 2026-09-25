@@ -1269,3 +1269,106 @@ func TestStreamChunk_ConvenienceMethods(t *testing.T) {
 func stringPtr(s string) *string {
 	return &s
 }
+
+func TestClient_CompressionOverrides(t *testing.T) {
+	const (
+		trim    = "X-Edgee-Compression-Tool-Result-Trimming"
+		surface = "X-Edgee-Compression-Tool-Surface-Reduction"
+		brevity = "X-Edgee-Compression-Brevity"
+	)
+	okBody := `{"choices":[{"index":0,"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}]}`
+
+	// capture records the headers and raw body of the single request the client sends.
+	capture := func(t *testing.T, contentType, response string) (*httptest.Server, *http.Header, *map[string]any) {
+		t.Helper()
+		headers := &http.Header{}
+		body := &map[string]any{}
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			*headers = r.Header.Clone()
+			raw, _ := io.ReadAll(r.Body)
+			json.Unmarshal(raw, body)
+			w.Header().Set("Content-Type", contentType)
+			fmt.Fprint(w, response)
+		}))
+		t.Cleanup(server.Close)
+		return server, headers, body
+	}
+	newClient := func(url string) *Client {
+		client, _ := NewClient(&Config{APIKey: "test-api-key", BaseURL: url})
+		return client
+	}
+
+	t.Run("InputObject toggles become headers, never body fields", func(t *testing.T) {
+		server, headers, body := capture(t, "application/json", okBody)
+		_, err := newClient(server.URL).Send("gpt-4", InputObject{
+			Messages:             []Message{{Role: "user", Content: "Hello"}},
+			ToolResultTrimming:   BoolPtr(true),
+			ToolSurfaceReduction: BoolPtr(false),
+			OutputBrevity:        BoolPtr(true),
+		})
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		for name, want := range map[string]string{trim: "true", surface: "false", brevity: "true"} {
+			if got := headers.Get(name); got != want {
+				t.Errorf("%s: expected %q, got %q", name, want, got)
+			}
+		}
+		for _, field := range []string{"tool_result_trimming", "tool_surface_reduction", "output_brevity"} {
+			if _, ok := (*body)[field]; ok {
+				t.Errorf("%s must not be sent in the body", field)
+			}
+		}
+	})
+
+	t.Run("unset toggles and non-bool map values are omitted", func(t *testing.T) {
+		server, headers, _ := capture(t, "application/json", okBody)
+		_, err := newClient(server.URL).Send("gpt-4", map[string]any{
+			"messages":             []map[string]any{{"role": "user", "content": "Hello"}},
+			"tool_result_trimming": false,
+			"output_brevity":       "yes",
+		})
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if got := headers.Get(trim); got != "false" {
+			t.Errorf("%s: expected \"false\", got %q", trim, got)
+		}
+		for _, name := range []string{surface, brevity} {
+			if _, ok := (*headers)[http.CanonicalHeaderKey(name)]; ok {
+				t.Errorf("%s must be omitted", name)
+			}
+		}
+	})
+
+	t.Run("string input sends no compression headers", func(t *testing.T) {
+		server, headers, _ := capture(t, "application/json", okBody)
+		if _, err := newClient(server.URL).Send("gpt-4", "Hello"); err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		for _, name := range []string{trim, surface, brevity} {
+			if _, ok := (*headers)[http.CanonicalHeaderKey(name)]; ok {
+				t.Errorf("%s must be omitted", name)
+			}
+		}
+	})
+
+	t.Run("streaming requests send the toggles", func(t *testing.T) {
+		server, headers, _ := capture(t, "text/event-stream", "data: [DONE]\n\n")
+		chunkChan, errChan := newClient(server.URL).Stream("gpt-4", &InputObject{
+			Messages:             []Message{{Role: "user", Content: "Hello"}},
+			ToolSurfaceReduction: BoolPtr(true),
+		})
+		for range chunkChan {
+		}
+		if err := <-errChan; err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+		if got := headers.Get(surface); got != "true" {
+			t.Errorf("%s: expected \"true\", got %q", surface, got)
+		}
+		if _, ok := (*headers)[http.CanonicalHeaderKey(trim)]; ok {
+			t.Errorf("%s must be omitted", trim)
+		}
+	})
+}
