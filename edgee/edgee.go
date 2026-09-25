@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -17,7 +18,16 @@ const (
 	DefaultBaseURL = "https://edgee.io"
 	// APIEndpoint is the chat completions endpoint
 	APIEndpoint = "/v1/chat/completions"
+
+	headerToolResultTrimming   = "X-Edgee-Compression-Tool-Result-Trimming"
+	headerToolSurfaceReduction = "X-Edgee-Compression-Tool-Surface-Reduction"
+	headerOutputBrevity        = "X-Edgee-Compression-Brevity"
 )
+
+// BoolPtr returns a pointer to v, for setting the optional compression toggles inline.
+func BoolPtr(v bool) *bool {
+	return &v
+}
 
 // Message represents a chat message
 type Message struct {
@@ -56,11 +66,23 @@ type FunctionDefinition struct {
 
 // InputObject represents structured input for chat completion
 type InputObject struct {
-	Messages         []Message `json:"messages"`
-	Tools            []Tool    `json:"tools,omitempty"`
-	ToolChoice       any       `json:"tool_choice,omitempty"` // string or object
-	Tags             []string  `json:"tags,omitempty"`
-	CompressionModel string    `json:"compression_model,omitempty"` // Compression model (gateway-internal, not sent to providers)
+	Messages   []Message `json:"messages"`
+	Tools      []Tool    `json:"tools,omitempty"`
+	ToolChoice any       `json:"tool_choice,omitempty"` // string or object
+	Tags       []string  `json:"tags,omitempty"`
+	// CompressionModel is a legacy switch: any value turns tool-result trimming on.
+	//
+	// Deprecated: use ToolResultTrimming instead.
+	CompressionModel string `json:"compression_model,omitempty"`
+	// ToolResultTrimming turns tool-result trimming on or off for this request.
+	// Nil keeps the API key setting.
+	ToolResultTrimming *bool `json:"-"`
+	// ToolSurfaceReduction turns MCP tool surface reduction on or off for this
+	// request. Nil keeps the API key setting; the threshold still comes from the key.
+	ToolSurfaceReduction *bool `json:"-"`
+	// OutputBrevity turns output brevity on or off for this request. Nil keeps the
+	// API key setting.
+	OutputBrevity *bool `json:"-"`
 }
 
 // Request represents the request body for chat completions
@@ -71,7 +93,11 @@ type Request struct {
 	Tools            []Tool    `json:"tools,omitempty"`
 	ToolChoice       any       `json:"tool_choice,omitempty"`
 	Tags             []string  `json:"tags,omitempty"`
-	CompressionModel string    `json:"compression_model,omitempty"` // Compression model (gateway-internal, not sent to providers)
+	CompressionModel string    `json:"compression_model,omitempty"`
+	// Sent as headers, never in the body.
+	ToolResultTrimming   *bool `json:"-"`
+	ToolSurfaceReduction *bool `json:"-"`
+	OutputBrevity        *bool `json:"-"`
 }
 
 // StreamDelta represents a streaming chunk delta
@@ -308,12 +334,18 @@ func (c *Client) buildRequest(model string, input any, stream bool) (*Request, e
 		req.ToolChoice = v.ToolChoice
 		req.Tags = v.Tags
 		req.CompressionModel = v.CompressionModel
+		req.ToolResultTrimming = v.ToolResultTrimming
+		req.ToolSurfaceReduction = v.ToolSurfaceReduction
+		req.OutputBrevity = v.OutputBrevity
 	case *InputObject:
 		req.Messages = v.Messages
 		req.Tools = v.Tools
 		req.ToolChoice = v.ToolChoice
 		req.Tags = v.Tags
 		req.CompressionModel = v.CompressionModel
+		req.ToolResultTrimming = v.ToolResultTrimming
+		req.ToolSurfaceReduction = v.ToolSurfaceReduction
+		req.OutputBrevity = v.OutputBrevity
 	case map[string]any:
 		// Map input
 		if messages, ok := v["messages"]; ok {
@@ -353,11 +385,34 @@ func (c *Client) buildRequest(model string, input any, stream bool) (*Request, e
 				req.CompressionModel = strVal
 			}
 		}
+		// Only real bools count; anything else keeps the API key setting.
+		if b, ok := v["tool_result_trimming"].(bool); ok {
+			req.ToolResultTrimming = &b
+		}
+		if b, ok := v["tool_surface_reduction"].(bool); ok {
+			req.ToolSurfaceReduction = &b
+		}
+		if b, ok := v["output_brevity"].(bool); ok {
+			req.OutputBrevity = &b
+		}
 	default:
 		return nil, fmt.Errorf("unsupported input type: %T", input)
 	}
 
 	return req, nil
+}
+
+// setCompressionHeaders sends the compression toggles the caller set; nil ones are omitted.
+func setCompressionHeaders(httpReq *http.Request, req *Request) {
+	for name, value := range map[string]*bool{
+		headerToolResultTrimming:   req.ToolResultTrimming,
+		headerToolSurfaceReduction: req.ToolSurfaceReduction,
+		headerOutputBrevity:        req.OutputBrevity,
+	} {
+		if value != nil {
+			httpReq.Header.Set(name, strconv.FormatBool(*value))
+		}
+	}
 }
 
 func (c *Client) handleNonStreamingResponse(req *Request) (response SendResponse, err error) {
@@ -373,6 +428,7 @@ func (c *Client) handleNonStreamingResponse(req *Request) (response SendResponse
 
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
+	setCompressionHeaders(httpReq, req)
 
 	client := &http.Client{}
 	resp, err := client.Do(httpReq)
@@ -418,6 +474,7 @@ func (c *Client) handleStreamingResponse(req *Request) (struct {
 
 		httpReq.Header.Set("Content-Type", "application/json")
 		httpReq.Header.Set("Authorization", "Bearer "+c.apiKey)
+		setCompressionHeaders(httpReq, req)
 
 		client := &http.Client{}
 		resp, err := client.Do(httpReq)
