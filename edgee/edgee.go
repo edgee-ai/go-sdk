@@ -70,10 +70,6 @@ type InputObject struct {
 	Tools      []Tool    `json:"tools,omitempty"`
 	ToolChoice any       `json:"tool_choice,omitempty"` // string or object
 	Tags       []string  `json:"tags,omitempty"`
-	// CompressionModel is a legacy switch: any value turns tool-result trimming on.
-	//
-	// Deprecated: use ToolResultTrimming instead.
-	CompressionModel string `json:"compression_model,omitempty"`
 	// ToolResultTrimming turns tool-result trimming on or off for this request.
 	// Nil keeps the API key setting.
 	ToolResultTrimming *bool `json:"-"`
@@ -87,13 +83,12 @@ type InputObject struct {
 
 // Request represents the request body for chat completions
 type Request struct {
-	Model            string    `json:"model"`
-	Messages         []Message `json:"messages"`
-	Stream           bool      `json:"stream,omitempty"`
-	Tools            []Tool    `json:"tools,omitempty"`
-	ToolChoice       any       `json:"tool_choice,omitempty"`
-	Tags             []string  `json:"tags,omitempty"`
-	CompressionModel string    `json:"compression_model,omitempty"`
+	Model      string    `json:"model"`
+	Messages   []Message `json:"messages"`
+	Stream     bool      `json:"stream,omitempty"`
+	Tools      []Tool    `json:"tools,omitempty"`
+	ToolChoice any       `json:"tool_choice,omitempty"`
+	Tags       []string  `json:"tags,omitempty"`
 	// Sent as headers, never in the body.
 	ToolResultTrimming   *bool `json:"-"`
 	ToolSurfaceReduction *bool `json:"-"`
@@ -333,7 +328,6 @@ func (c *Client) buildRequest(model string, input any, stream bool) (*Request, e
 		req.Tools = v.Tools
 		req.ToolChoice = v.ToolChoice
 		req.Tags = v.Tags
-		req.CompressionModel = v.CompressionModel
 		req.ToolResultTrimming = v.ToolResultTrimming
 		req.ToolSurfaceReduction = v.ToolSurfaceReduction
 		req.OutputBrevity = v.OutputBrevity
@@ -342,7 +336,6 @@ func (c *Client) buildRequest(model string, input any, stream bool) (*Request, e
 		req.Tools = v.Tools
 		req.ToolChoice = v.ToolChoice
 		req.Tags = v.Tags
-		req.CompressionModel = v.CompressionModel
 		req.ToolResultTrimming = v.ToolResultTrimming
 		req.ToolSurfaceReduction = v.ToolSurfaceReduction
 		req.OutputBrevity = v.OutputBrevity
@@ -378,11 +371,6 @@ func (c *Client) buildRequest(model string, input any, stream bool) (*Request, e
 						req.Tags = append(req.Tags, s)
 					}
 				}
-			}
-		}
-		if compressionModel, ok := v["compression_model"]; ok {
-			if strVal, ok := compressionModel.(string); ok {
-				req.CompressionModel = strVal
 			}
 		}
 		// Only real bools count; anything else keeps the API key setting.
